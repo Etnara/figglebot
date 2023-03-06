@@ -3,6 +3,8 @@ import selenium
 import time
 from discord.ext import tasks
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 
 # User Variables
@@ -14,8 +16,8 @@ password = "Generation Esports Password"
 # Module Variables
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome("Path to ChromeDriver", options = options) 
 options.add_argument("--headless")
+driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()), options = options)
 client = discord.Client(intents = discord.Intents.all())
 
 # Goto Generation Esports
