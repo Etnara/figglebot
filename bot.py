@@ -1,11 +1,17 @@
 import discord
 import selenium
-import time
 from discord.ext import tasks
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
+import sys
+
+# Temporary Sleep Time Variable
+if len(sys.argv) > 1:
+    sleepTime = int(sys.argv[1])
+else:
+    sleepTime = 3600
 
 # User Variables
 token = "Discord Bot Token"
@@ -18,16 +24,15 @@ options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 options.add_argument("--headless")
 driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()), options = options)
+driver.implicitly_wait(15)
 client = discord.Client(intents = discord.Intents.all())
 
 # Goto Generation Esports
 driver.get("https://app.generationesports.com/")
-time.sleep(15) # Wait for page to load
 
 # Login
 driver.find_element("id", "mat-input-0").send_keys(email)
 driver.find_element("id", "mat-input-1").send_keys(password + Keys.RETURN)
-time.sleep(15) # Wait for page to load
 
 #
 # Discord Functions
@@ -39,17 +44,17 @@ async def on_ready():
     print(f"Bot logged in as {client.user}")
     match_alert.start() # Start Match Alert Loop
 
-@tasks.loop(seconds = 3600)
+@tasks.loop(seconds = sleepTime)
 async def match_alert():
     await client.wait_until_ready()
 
     # Goto Matches
     print("Checking for new matches...")
+    driver.refresh()
     try:
         global Time # Set Match Time as a global variable
         Time = driver.find_element("xpath", "/html/body/app-root/app-wrapper/div/mat-drawer-container/mat-drawer-content/div/div[1]/div/app-dashboard/div/div[2]/gene-card/mat-card/div[2]/single-elim-match-dashboard/div/div[3]/div[1]/span[1]").text
         driver.find_element("xpath", "/html/body/app-root/app-wrapper/div/mat-drawer-container/mat-drawer-content/div/div[1]/div/app-dashboard/div/div[2]/gene-card/mat-card/div[2]/single-elim-match-dashboard/div/div[3]/div[2]/div[2]/button").click()
-        time.sleep(15) # Wait for page to load
     except:
         return
 
@@ -107,6 +112,8 @@ async def match_alert():
             print("No new matches found")
         else:
             await channel.send(embed = embed)
+
+    driver.back()
 
 # Login to Discord
 try:
